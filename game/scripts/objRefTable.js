@@ -96,7 +96,9 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.System.Acts.SetLayerVisible,
 		C3.Plugins.System.Acts.SetTimescale,
 		C3.Plugins.Audio.Acts.SetPaused,
-		C3.Plugins.System.Acts.WaitForPreviousActions
+		C3.Plugins.System.Acts.WaitForPreviousActions,
+		C3.Plugins.Sprite.Exps.AnimationName,
+		C3.Plugins.Sprite.Acts.SetEffectEnabled
 	];
 };
 self.C3_JsPropNameTable = [
@@ -142,6 +144,8 @@ self.C3_JsPropNameTable = [
 	{Sprite9: 0},
 	{Sprite13: 0},
 	{PauseBackdrop: 0},
+	{Sprite: 0},
+	{DiffSelect: 0},
 	{Targets: 0},
 	{DelayBeforeSequenceStart: 0},
 	{SequenceData: 0},
@@ -164,6 +168,7 @@ self.C3_JsPropNameTable = [
 	{CurrentRoundIndex: 0},
 	{CurrentPlayerIndex: 0},
 	{CurrentRoundSequenceData: 0},
+	{NbRound: 0},
 	{Player1RapperIndex: 0},
 	{Player2RapperIndex: 0},
 	{Player1RoundPoints: 0},
@@ -177,7 +182,8 @@ self.C3_JsPropNameTable = [
 	{PlayerIndex: 0},
 	{Next: 0},
 	{ArcadeMode: 0},
-	{RapperCount: 0}
+	{RapperCount: 0},
+	{DiffSelectIndex: 0}
 ];
 
 self.InstanceType = {
@@ -213,5 +219,7 @@ self.InstanceType = {
 	Sprite9: class extends self.ISpriteInstance {},
 	Sprite13: class extends self.ISpriteInstance {},
 	PauseBackdrop: class extends self.ISpriteInstance {},
+	Sprite: class extends self.ISpriteInstance {},
+	DiffSelect: class extends self.ISpriteInstance {},
 	Targets: class extends self.ISpriteInstance {}
 }
