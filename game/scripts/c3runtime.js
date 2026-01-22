@@ -1166,6 +1166,81 @@ self["C3_Shaders"]["grayscale"] = {
 	animated: false,
 	parameters: [["intensity",0,"percent"]]
 };
+self["C3_Shaders"]["noise"] = {
+	glsl: "#ifdef GL_FRAGMENT_PRECISION_HIGH\n#define highmedp highp\n#else\n#define highmedp mediump\n#endif\nvarying mediump vec2 vTex;\nuniform lowp sampler2D samplerFront;\nuniform highmedp float seconds;\nuniform lowp float intensity;\nuniform lowp float noiseColor;\nvoid main(void)\n{\nlowp vec4 front = texture2D(samplerFront, vTex);\nlowp float a = front.a;\nif (a != 0.0)\nfront.rgb /= a;\nhighmedp float seconds_mod = mod(seconds, 10.0);\nmediump vec3 noise = vec3(fract(sin(dot(vTex.xy, vec2(12.9898,78.233)) + seconds_mod) * 43758.5453),\nfract(sin(dot(vTex.yx, vec2(12.9898,-78.233)) + seconds_mod) * 43758.5453),\nfract(sin(dot(vTex.xy, vec2(-12.9898,-78.233)) + seconds_mod) * 43758.5453));\nnoise = mix(vec3(noise.r), noise, noiseColor);\nfront.rgb += (noise * intensity) - (intensity / 2.0);\nfront.rgb *= a;\ngl_FragColor = front;\n}",
+	glslWebGL2: "",
+	wgsl: "%%SAMPLERFRONT_BINDING%% var samplerFront : sampler;\n%%TEXTUREFRONT_BINDING%% var textureFront : texture_2d<f32>;\nstruct ShaderParams {\nintensity : f32,\nnoiseColor : f32\n};\n%%SHADERPARAMS_BINDING%% var<uniform> shaderParams : ShaderParams;\n%%C3PARAMS_STRUCT%%\n%%C3_UTILITY_FUNCTIONS%%\n%%FRAGMENTINPUT_STRUCT%%\n%%FRAGMENTOUTPUT_STRUCT%%\n@fragment\nfn main(input : FragmentInput) -> FragmentOutput\n{\nvar front : vec4<f32> = c3_unpremultiply(textureSample(textureFront, samplerFront, input.fragUV));\nvar seconds_mod : f32 = c3Params.seconds % 10.0;\nvar noise : vec3<f32> = vec3<f32>(\nfract(sin(dot(input.fragUV.xy, vec2<f32>(12.9898,78.233)) + seconds_mod) * 43758.5453),\nfract(sin(dot(input.fragUV.yx, vec2<f32>(12.9898,-78.233)) + seconds_mod) * 43758.5453),\nfract(sin(dot(input.fragUV.xy, vec2<f32>(-12.9898,-78.233)) + seconds_mod) * 43758.5453));\nnoise = mix(vec3<f32>(noise.r), noise, shaderParams.noiseColor);\nvar output : FragmentOutput;\noutput.color = vec4<f32>((front.rgb + ((noise * shaderParams.intensity) - (shaderParams.intensity / 2.0))) * front.a, front.a);\nreturn output;\n}",
+	blendsBackground: false,
+	usesDepth: false,
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: false,
+	mustPreDraw: false,
+	preservesOpaqueness: true,
+	supports3dDirectRendering: false,
+	animated: true,
+	parameters: [["intensity",0,"percent"],["noiseColor",0,"percent"]]
+};
+self["C3_Shaders"]["scanlines"] = {
+	glsl: "varying mediump vec2 vTex;\nuniform lowp sampler2D samplerFront;\nuniform mediump vec2 pixelSize;\nuniform mediump float lineHeight;\nvoid main(void)\n{\nlowp vec4 front = texture2D(samplerFront, vTex);\nmediump float factor = 1.0 + (floor(mod(vTex.y, pixelSize.y * lineHeight * 2.0) / (pixelSize.y * lineHeight)) / 3.0);\nfront.rgb /= factor;\ngl_FragColor = front;\n}",
+	glslWebGL2: "",
+	wgsl: "%%SAMPLERFRONT_BINDING%% var samplerFront : sampler;\n%%TEXTUREFRONT_BINDING%% var textureFront : texture_2d<f32>;\nstruct ShaderParams {\nlineHeight : f32\n};\n%%SHADERPARAMS_BINDING%% var<uniform> shaderParams : ShaderParams;\n%%C3_UTILITY_FUNCTIONS%%\n%%FRAGMENTINPUT_STRUCT%%\n%%FRAGMENTOUTPUT_STRUCT%%\n@fragment\nfn main(input : FragmentInput) -> FragmentOutput\n{\nvar pixelSizeY : f32 = c3_getPixelSize(textureFront).y;\nvar front : vec4<f32> = textureSample(textureFront, samplerFront, input.fragUV);\nvar factor : f32 = 1.0 + (floor(c3_mod(input.fragUV.y, pixelSizeY * shaderParams.lineHeight * 2.0) / (pixelSizeY * shaderParams.lineHeight)) / 3.0);\nvar output : FragmentOutput;\noutput.color = vec4<f32>(front.rgb / factor, front.a);\nreturn output;\n}",
+	blendsBackground: false,
+	usesDepth: false,
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: false,
+	mustPreDraw: false,
+	preservesOpaqueness: true,
+	supports3dDirectRendering: false,
+	animated: false,
+	parameters: [["lineHeight",0,"float"]]
+};
+self["C3_Shaders"]["vignette"] = {
+	glsl: "varying mediump vec2 vTex;\nuniform lowp sampler2D samplerFront;\nuniform mediump vec2 srcStart;\nuniform mediump vec2 srcEnd;\nuniform mediump float vignetteStart;\nuniform mediump float vignetteEnd;\nvoid main(void)\n{\nlowp vec4 front = texture2D(samplerFront, vTex);\nlowp float a = front.a;\nif (a != 0.0)\nfront.rgb /= a;\nmediump vec2 tex = (vTex - srcStart) / (srcEnd - srcStart);\nlowp float d = distance(tex, vec2(0.5, 0.5));\nfront.rgb *= smoothstep(vignetteEnd, vignetteStart, d);\nfront.rgb *= a;\ngl_FragColor = front;\n}",
+	glslWebGL2: "",
+	wgsl: "%%SAMPLERFRONT_BINDING%% var samplerFront : sampler;\n%%TEXTUREFRONT_BINDING%% var textureFront : texture_2d<f32>;\nstruct ShaderParams {\nvignetteStart : f32,\nvignetteEnd : f32\n};\n%%SHADERPARAMS_BINDING%% var<uniform> shaderParams : ShaderParams;\n%%C3PARAMS_STRUCT%%\n%%C3_UTILITY_FUNCTIONS%%\n%%FRAGMENTINPUT_STRUCT%%\n%%FRAGMENTOUTPUT_STRUCT%%\nconst center : vec2<f32> = vec2<f32>(0.5);\n@fragment\nfn main(input : FragmentInput) -> FragmentOutput\n{\nvar front : vec4<f32> = c3_unpremultiply(textureSample(textureFront, samplerFront, input.fragUV));\nvar rgb : vec3<f32> = front.rgb;\nvar tex : vec2<f32> = c3_srcToNorm(input.fragUV);\nvar d : f32 = distance(tex, center);\nrgb = rgb * smoothstep(shaderParams.vignetteEnd, shaderParams.vignetteStart, d);\nvar output : FragmentOutput;\noutput.color = vec4<f32>(rgb * front.a, front.a);\nreturn output;\n}",
+	blendsBackground: false,
+	usesDepth: false,
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: false,
+	mustPreDraw: false,
+	preservesOpaqueness: true,
+	supports3dDirectRendering: false,
+	animated: false,
+	parameters: [["vignetteStart",0,"percent"],["vignetteEnd",0,"percent"]]
+};
+self["C3_Shaders"]["overlay"] = {
+	glsl: "precision mediump float;\nvarying mediump vec2 vTex;\nuniform lowp sampler2D samplerFront;\nuniform mediump vec2 srcStart;\nuniform mediump vec2 srcEnd;\nuniform lowp sampler2D samplerBack;\nuniform mediump vec2 destStart;\nuniform mediump vec2 destEnd;\nvoid main(void)\n{\nlowp vec4 front = texture2D(samplerFront, vTex);\nmediump vec2 tex = (vTex - srcStart) / (srcEnd - srcStart);\nlowp vec4 back = texture2D(samplerBack, mix(destStart, destEnd, tex));\nfront.r = back.r < 0.5 ? 2.0 * back.r * front.r : 2.0 * (front.r + back.r * front.a - back.r * front.r) - front.a;\nfront.g = back.g < 0.5 ? 2.0 * back.g * front.g : 2.0 * (front.g + back.g * front.a - back.g * front.g) - front.a;\nfront.b = back.b < 0.5 ? 2.0 * back.b * front.b : 2.0 * (front.b + back.b * front.a - back.b * front.b) - front.a;\nfront *= back.a;\ngl_FragColor = front;\n}",
+	glslWebGL2: "",
+	wgsl: "%%SAMPLERFRONT_BINDING%% var samplerFront : sampler;\n%%TEXTUREFRONT_BINDING%% var textureFront : texture_2d<f32>;\n%%SAMPLERBACK_BINDING%% var samplerBack : sampler;\n%%TEXTUREBACK_BINDING%% var textureBack : texture_2d<f32>;\n%%FRAGMENTINPUT_STRUCT%%\n%%FRAGMENTOUTPUT_STRUCT%%\n@fragment\nfn main(input : FragmentInput) -> FragmentOutput\n{\nvar front : vec4<f32> = textureSample(textureFront, samplerFront, input.fragUV);\nvar back : vec4<f32> = textureSample(textureBack, samplerBack, c3_getBackUV(input.fragPos.xy, textureBack));\nvar rgb : vec3<f32> = select(\n2.0 * (front.rgb + back.rgb * front.a - back.rgb * front.rgb) - front.a,\n2.0 * back.rgb * front.rgb,\nback.rgb < vec3<f32>(0.5)\n);\nvar output : FragmentOutput;\noutput.color = vec4<f32>(rgb, front.a) * back.a;\nreturn output;\n}",
+	blendsBackground: true,
+	usesDepth: false,
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: false,
+	mustPreDraw: false,
+	preservesOpaqueness: false,
+	supports3dDirectRendering: false,
+	animated: false,
+	parameters: []
+};
+self["C3_Shaders"]["bulge"] = {
+	glsl: "varying mediump vec2 vTex;\nuniform lowp sampler2D samplerFront;\nuniform mediump vec2 srcOriginStart;\nuniform mediump vec2 srcOriginEnd;\nuniform mediump float radius;\nuniform mediump float scale;\nvoid main(void)\n{\nmediump vec2 srcOriginSize = srcOriginEnd - srcOriginStart;\nmediump vec2 tex = (vTex - srcOriginStart) / srcOriginSize;\nmediump float dist = distance(vec2(0.5, 0.5), tex);\ntex -= vec2(0.5, 0.5);\nif (dist < radius)\n{\nmediump float percent = 1.0 - ((radius - dist) / radius) * scale;\npercent = percent * percent;\ntex = tex * percent;\n}\ntex += vec2(0.5, 0.5);\ntex = clamp(tex, 0.0, 1.0);\t\t\t// ensure no sampling outside source rect\ntex = (tex * srcOriginSize) + srcOriginStart;\t// convert back relative to source rect\ngl_FragColor = texture2D(samplerFront, tex);\n}",
+	glslWebGL2: "",
+	wgsl: "%%SAMPLERFRONT_BINDING%% var samplerFront : sampler;\n%%TEXTUREFRONT_BINDING%% var textureFront : texture_2d<f32>;\nstruct ShaderParams {\nradius : f32,\nscale : f32\n};\n%%SHADERPARAMS_BINDING%% var<uniform> shaderParams : ShaderParams;\n%%C3PARAMS_STRUCT%%\n%%C3_UTILITY_FUNCTIONS%%\n%%FRAGMENTINPUT_STRUCT%%\n%%FRAGMENTOUTPUT_STRUCT%%\n@fragment\nfn main(input : FragmentInput) -> FragmentOutput\n{\nvar tex : vec2<f32> = c3_srcOriginToNorm(input.fragUV);\nvar dist : f32 = distance(vec2<f32>(0.5, 0.5), tex);\ntex = tex - 0.5;\nif (dist < shaderParams.radius)\n{\nvar percent : f32 = 1.0 - ((shaderParams.radius - dist) / shaderParams.radius) * shaderParams.scale;\npercent = percent * percent;\ntex = tex * percent;\n}\ntex = tex + 0.5;\ntex = c3_clamp2(tex, 0.0, 1.0);\t\t// ensure no sampling outside source rect\ntex = c3_normToSrcOrigin(tex);\t\t// convert back relative to source rect\nvar output : FragmentOutput;\noutput.color = textureSample(textureFront, samplerFront, tex);\nreturn output;\n}",
+	blendsBackground: false,
+	usesDepth: false,
+	extendBoxHorizontal: 0,
+	extendBoxVertical: 0,
+	crossSampling: false,
+	mustPreDraw: false,
+	preservesOpaqueness: false,
+	supports3dDirectRendering: false,
+	animated: false,
+	parameters: [["radius",0,"percent"],["scale",0,"percent"]]
+};
 
 }
 
@@ -1469,9 +1544,8 @@ self.C3_ExpressionFuncs = [
 		() => 25,
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
-			return () => f0("toux/Toux - 1", "toux/Toux - 2", "toux/Toux - 3", "toux/Toux - 4", "toux/Toux - 5");
+			return () => f0("toux/Toux 1", "toux/Toux 2", "toux/Toux 3", "toux/Toux 4", "toux/Toux 5");
 		},
-		() => 10,
 		() => "p1",
 		p => {
 			const v0 = p._GetNode(0).GetVar();
@@ -1546,6 +1620,18 @@ self.C3_ExpressionFuncs = [
 			const f0 = p._GetNode(0).GetBoundMethod();
 			return () => f0(0);
 		},
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => f0("yellow", 1);
+		},
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => f0("red", 0);
+		},
+		p => {
+			const f0 = p._GetNode(0).GetBoundMethod();
+			return () => f0("red", 1);
+		},
 		() => "Home",
 		() => "right",
 		() => "u",
@@ -1589,29 +1675,10 @@ self.C3_ExpressionFuncs = [
 		},
 		() => "2",
 		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("samples/Rapeur Eminem - " + v0.GetValue());
-		},
-		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("samples/Rapeur Orelsan - " + v0.GetValue());
-		},
-		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("samples/Rapeur snoop - " + v0.GetValue());
-		},
-		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("samples/Rapeur Wojtek - " + v0.GetValue());
-		},
-		() => 4,
-		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("samples/Rapeur ours - " + v0.GetValue());
-		},
-		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("samples/Rapeur Canarticho - " + v0.GetValue());
+			const f0 = p._GetNode(0).GetBoundMethod();
+			const v1 = p._GetNode(1).GetVar();
+			const v2 = p._GetNode(2).GetVar();
+			return () => (("samples/" + f0(v1.GetValue())) + v2.GetValue());
 		},
 		p => {
 			const v0 = p._GetNode(0).GetVar();
@@ -1648,10 +1715,6 @@ self.C3_ExpressionFuncs = [
 			return () => f0("right", 1);
 		},
 		p => {
-			const f0 = p._GetNode(0).GetBoundMethod();
-			return () => f0("yellow", 1);
-		},
-		p => {
 			const v0 = p._GetNode(0).GetVar();
 			return () => and("p", v0.GetValue());
 		},
@@ -1670,8 +1733,9 @@ self.C3_ExpressionFuncs = [
 			return () => ((((v0.GetValue()) === (0) ? 1 : 0)) ? ((v1.GetValue() - 1)) : ((v2.GetValue() - 1)));
 		},
 		p => {
-			const v0 = p._GetNode(0).GetVar();
-			return () => ("Selection" + (v0.GetValue()).toString());
+			const f0 = p._GetNode(0).GetBoundMethod();
+			const v1 = p._GetNode(1).GetVar();
+			return () => ("selections/" + f0(v1.GetValue()));
 		},
 		() => "Pause Logic",
 		p => {

@@ -79,6 +79,7 @@ self.C3_GetObjectRefTable = function () {
 		C3.Plugins.Sprite.Acts.StopAnim,
 		C3.Behaviors.Sin.Acts.SetEnabled,
 		C3.Plugins.Sprite.Acts.SetAngle,
+		C3.JavaScriptInEvents.Rappers_Event10_Act1,
 		C3.Plugins.System.Exps.max,
 		C3.Plugins.System.Exps.min,
 		C3.Plugins.Sprite.Acts.SetWidth,
@@ -146,6 +147,7 @@ self.C3_JsPropNameTable = [
 	{PauseBackdrop: 0},
 	{Sprite: 0},
 	{DiffSelect: 0},
+	{ScreenEffects: 0},
 	{Targets: 0},
 	{DelayBeforeSequenceStart: 0},
 	{SequenceData: 0},
@@ -221,5 +223,6 @@ self.InstanceType = {
 	PauseBackdrop: class extends self.ISpriteInstance {},
 	Sprite: class extends self.ISpriteInstance {},
 	DiffSelect: class extends self.ISpriteInstance {},
+	ScreenEffects: class extends self.ISpriteInstance {},
 	Targets: class extends self.ISpriteInstance {}
 }
