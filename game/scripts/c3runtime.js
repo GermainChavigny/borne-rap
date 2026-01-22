@@ -1611,6 +1611,10 @@ self.C3_ExpressionFuncs = [
 		},
 		p => {
 			const v0 = p._GetNode(0).GetVar();
+			return () => ("samples/Rapeur Canarticho - " + v0.GetValue());
+		},
+		p => {
+			const v0 = p._GetNode(0).GetVar();
 			return () => (v0.GetValue()).toString();
 		},
 		() => 178,
