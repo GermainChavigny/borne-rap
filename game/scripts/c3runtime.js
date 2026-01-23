@@ -1609,7 +1609,11 @@ self.C3_ExpressionFuncs = [
 		},
 		p => {
 			const f0 = p._GetNode(0).GetBoundMethod();
-			return () => f0("0", "1", "2");
+			const f1 = p._GetNode(1).GetBoundMethod();
+			const v2 = p._GetNode(2).GetVar();
+			const f3 = p._GetNode(3).GetBoundMethod();
+			const v4 = p._GetNode(4).GetVar();
+			return () => f0(f1(v2.GetValue()), f3(v4.GetValue()));
 		},
 		() => 5,
 		() => "EndAnimationDone",
